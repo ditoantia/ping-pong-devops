@@ -1,0 +1,9 @@
+services:
+  ping-pong-app:
+    build: .
+    container_name: ping-pong-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
