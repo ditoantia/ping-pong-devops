@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ping Pong DevOps App</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111827;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+      color: #38bdf8;
+    }
+
+    p {
+      color: #cbd5e1;
+    }
+
+    canvas {
+      background: #020617;
+      border: 3px solid #38bdf8;
+      display: block;
+      margin: 20px auto;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+
+    .links {
+      margin-top: 20px;
+    }
+
+    .links a {
+      color: #22c55e;
+      margin: 0 10px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ping Pong DevOps App</h1>
+
+  <p>
+    Player 1: W / S |
+    Player 2: Arrow Up / Arrow Down
+  </p>
+
+  <canvas id="gameCanvas" width="900" height="500"></canvas>
+
+  <div class="links">
+    <a href="/health" target="_blank">Health</a>
+    <a href="/api/status" target="_blank">Status</a>
+    <a href="/metrics" target="_blank">Metrics</a>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const paddleWidth = 12;
+    const paddleHeight = 100;
+
+    let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
+    let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height / 2;
+    let ballRadius = 10;
+
+    let ballSpeedX = 5;
+    let ballSpeedY = 4;
+
+    let leftScore = 0;
+    let rightScore = 0;
+
+    const keys = {};
+
+    document.addEventListener("keydown", (event) => {
+      keys[event.key] = true;
+    });
+
+    document.addEventListener("keyup", (event) => {
+      keys[event.key] = false;
+    });
+
+    function drawRect(x, y, width, height, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, width, height);
+    }
+
+    function drawCircle(x, y, radius, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawText(text, x, y, size, color) {
+      ctx.fillStyle = color;
+      ctx.font = `${size}px Arial`;
+      ctx.fillText(text, x, y);
+    }
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = -ballSpeedX;
+      ballSpeedY = Math.random() > 0.5 ? 4 : -4;
+    }
+
+    function update() {
+      if (keys["w"] || keys["W"]) {
+        leftPaddleY -= 7;
+      }
+
+      if (keys["s"] || keys["S"]) {
+        leftPaddleY += 7;
+      }
+
+      if (keys["ArrowUp"]) {
+        rightPaddleY -= 7;
+      }
+
+      if (keys["ArrowDown"]) {
+        rightPaddleY += 7;
+      }
+
+      leftPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, leftPaddleY));
+      rightPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, rightPaddleY));
+
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      if (ballY - ballRadius <= 0 || ballY + ballRadius >= canvas.height) {
+        ballSpeedY = -ballSpeedY;
+      }
+
+      if (
+        ballX - ballRadius <= 22 &&
+        ballY >= leftPaddleY &&
+        ballY <= leftPaddleY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+        ballX = 22 + ballRadius;
+      }
+
+      if (
+        ballX + ballRadius >= canvas.width - 22 &&
+        ballY >= rightPaddleY &&
+        ballY <= rightPaddleY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+        ballX = canvas.width - 22 - ballRadius;
+      }
+
+      if (ballX < 0) {
+        rightScore++;
+        resetBall();
+      }
+
+      if (ballX > canvas.width) {
+        leftScore++;
+        resetBall();
+      }
+    }
+
+    function draw() {
+      drawRect(0, 0, canvas.width, canvas.height, "#020617");
+
+      for (let i = 0; i < canvas.height; i += 30) {
+        drawRect(canvas.width / 2 - 2, i, 4, 18, "#64748b");
+      }
+
+      drawRect(10, leftPaddleY, paddleWidth, paddleHeight, "#22c55e");
+      drawRect(canvas.width - 22, rightPaddleY, paddleWidth, paddleHeight, "#38bdf8");
+
+      drawCircle(ballX, ballY, ballRadius, "#f8fafc");
+
+      drawText(leftScore, canvas.width / 2 - 80, 60, 42, "#22c55e");
+      drawText(rightScore, canvas.width / 2 + 55, 60, 42, "#38bdf8");
+
+      drawText("Docker + Node.js + Prometheus Ready", 20, canvas.height - 20, 16, "#94a3b8");
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
