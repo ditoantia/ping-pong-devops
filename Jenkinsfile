@@ -12,14 +12,20 @@ pipeline {
             }
         }
 
+        stage('Show Workspace') {
+            steps {
+                sh '''
+                    pwd
+                    ls -la
+                '''
+            }
+        }
+
         stage('Run Tests') {
             steps {
                 sh '''
-                    docker run --rm \
-                    -v "$PWD":/app \
-                    -w /app \
-                    node:24-alpine \
-                    sh -c "npm install && npm test"
+                    npm install
+                    npm test
                 '''
             }
         }
